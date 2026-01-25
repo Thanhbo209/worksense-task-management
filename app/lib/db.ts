@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 
 // Import environment variables from .env file
-const MONGODB_URI: string =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/worksense";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 /// Ensure the MongoDB URI is defined
 if (!MONGODB_URI) {
@@ -11,31 +10,40 @@ if (!MONGODB_URI) {
   );
 }
 
-// Global is used here to maintain a cached connection across hot reloads
-let cached = (global as any).mongoose;
+const uri: string = MONGODB_URI;
 
-//  If the cached connection is not defined, initialize it
+// Global is used here to maintain a cached connection across hot reloads
+let cached = global.mongoose;
+
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null }; // Initialize cached object
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 // Function to connect to the MongoDB database
 export async function connectDB() {
   // Return the cached connection if it exists
-  if (cached.conn) {
-    return cached.conn;
+  if (cached!.conn) {
+    return cached!.conn;
   }
 
   // If no cached promise exists, create a new connection promise
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
+  if (!cached!.promise) {
+    cached!.promise = mongoose
+      .connect(uri, {
+        bufferCommands: false,
+      })
+      .then((m) => m.connection); // 🔑 LẤY connection
   }
 
-  // Await the connection promise and cache the connection
-  cached.conn = await cached.promise;
-  console.log("MongoDB connected");
+  try {
+    // Await the connection promise and cache the connection
+    cached!.conn = await cached!.promise;
+    console.log("MongoDB connected");
+  } catch (error) {
+    // Reset promise on failure to allow retry
+    cached!.promise = null;
+    throw error;
+  }
 
-  return cached.conn;
+  return cached!.conn;
 }
