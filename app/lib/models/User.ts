@@ -11,6 +11,7 @@ const UserSchema = new Schema(
       type: String,
       required: [true, "Please provide an email"],
       unique: true,
+      lowercase: true,
       maxlength: [100, "Email cannot be more than 100 characters"],
     },
     password: {
