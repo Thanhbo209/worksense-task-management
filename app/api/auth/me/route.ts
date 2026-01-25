@@ -17,6 +17,10 @@ export async function GET() {
     await connectDB();
     const user = await User.findById(decoded.userId).select("-password");
 
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     return NextResponse.json({ user });
   } catch {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
