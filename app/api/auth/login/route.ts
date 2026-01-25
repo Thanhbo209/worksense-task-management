@@ -45,9 +45,9 @@ export async function POST(request: Request) {
     delete userObj.password; // Remove password before sending response
     return NextResponse.json({ user: userObj }, { status: 200 });
   } catch (error) {
-    console.error("Login Failed");
+    console.error("Login Failed: ", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error },
+      { message: "Internal Server Error" },
       { status: 500 },
     );
   }
