@@ -3,23 +3,54 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined");
+}
+
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("access_token")?.value;
+  const { pathname } = req.nextUrl;
 
+  // Chưa login → về login
   if (!token) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    if (pathname !== "/login") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    return NextResponse.next();
   }
 
   try {
-    await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, {
+      algorithms: ["HS256"],
+    });
+
+    const role = payload.role as "user" | "admin";
+
+    // USER mà vào ADMIN
+    if (role === "user" && pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // ADMIN mà vào USER dashboard
+    if (role === "admin" && pathname.startsWith("/dashboard")) {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+
+    // Đã login mà vào /login → redirect đúng dashboard
+    if (pathname === "/login") {
+      return NextResponse.redirect(
+        new URL(role === "admin" ? "/admin" : "/dashboard", req.url),
+      );
+    }
+
     return NextResponse.next();
-  } catch (err) {
-    return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+  } catch {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 
 export const config = {
-  matcher: ["/api/tasks/:path*", "/api/auth/me"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/login"],
 };
