@@ -26,7 +26,12 @@ export async function middleware(req: NextRequest) {
       algorithms: ["HS256"],
     });
 
-    const role = payload.role as "user" | "admin";
+    const role = payload.role;
+
+    // validate role
+    if (role !== "admin" && role !== "user") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
 
     // USER mà vào ADMIN
     if (role === "user" && pathname.startsWith("/admin")) {
