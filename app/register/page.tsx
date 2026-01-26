@@ -57,7 +57,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="text">Username</Label>
+              <Label htmlFor="name">Username</Label>
               <Input
                 id="name"
                 type="text"

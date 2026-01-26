@@ -13,7 +13,7 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("access_token")?.value;
   const { pathname } = req.nextUrl;
 
-  // Chưa login → về login
+  // No Login → Redirect to login page
   if (!token) {
     if (pathname !== "/login") {
       return NextResponse.redirect(new URL("/login", req.url));
@@ -33,17 +33,17 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    // USER mà vào ADMIN
+    // USER direct to ADMIN
     if (role === "user" && pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // ADMIN mà vào USER dashboard
+    // ADMIN direct to USER dashboard
     if (role === "admin" && pathname.startsWith("/dashboard")) {
       return NextResponse.redirect(new URL("/admin", req.url));
     }
 
-    // Đã login mà vào /login → redirect đúng dashboard
+    // Already login → No need to access login page
     if (pathname === "/login") {
       return NextResponse.redirect(
         new URL(role === "admin" ? "/admin" : "/dashboard", req.url),

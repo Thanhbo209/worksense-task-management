@@ -182,7 +182,8 @@ body {
   letter-spacing: var(--tracking-normal);
 }
 
-button a {
+button,
+a {
   cursor: pointer;
 }
 

@@ -1,13 +1,6 @@
 "use client";
 import { useState } from "react";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,21 +10,22 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (res.ok) {
-      // Redirect or update UI on successful login
-      window.location.href = "/dashboard";
-    } else {
-      const data = await res.json();
+      if (res.ok) {
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
       alert(data.message || "Login failed");
+    } catch {
+      alert("Network error. Please try again.");
     }
   };
   return (
