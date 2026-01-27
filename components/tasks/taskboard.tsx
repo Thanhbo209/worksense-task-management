@@ -19,22 +19,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GoalIcon, Zap } from "lucide-react";
 
-interface Task {
-  _id: string;
-  title: string;
-  description?: string;
-  status: "todo" | "in-progress" | "done";
-  priority: "low" | "medium" | "high";
-  categoryId?: {
-    _id: string;
-    name: string;
-  };
-  dueDate?: string;
-  tags?: string[];
-  energyLevel?: number;
-  focusLevel?: number;
-}
-
 interface TaskCardProps {
   task: Task;
 }
@@ -124,25 +108,25 @@ function TaskCard({ task }: TaskCardProps) {
       {(task.energyLevel !== undefined || task.focusLevel !== undefined) && (
         <div className="mt-3 pt-3 border-t flex justify-between items-center gap-4 text-xs text-muted-foreground">
           {task.dueDate && (
-            <span className="text-xs text-accent-foreground">
+            <span className="text-xs text-primary">
               Due: {new Date(task.dueDate).toLocaleDateString()}
             </span>
           )}
           <div className="flex gap-2">
             {task.energyLevel !== undefined && (
-              <div className="flex items-center gap-1">
+              <div className="flex justify-center items-center gap-1">
                 <span>
-                  <Zap color="yellow" />
+                  <Zap size={17} color="white" />
                 </span>
-                <span>{task.energyLevel}/5</span>
+                <span>{task.energyLevel} / 5</span>
               </div>
             )}
             {task.focusLevel !== undefined && (
               <div className="flex items-center gap-1">
                 <span>
-                  <GoalIcon color="red" />
+                  <GoalIcon size={17} color="white" />
                 </span>
-                <span>{task.focusLevel}/5</span>
+                <span>{task.focusLevel} / 5</span>
               </div>
             )}
           </div>

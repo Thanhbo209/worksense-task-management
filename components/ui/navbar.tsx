@@ -12,7 +12,7 @@ export default function Navbar({ title }: NavbarProps) {
     <header
       className={cn(
         "sticky top-0 z-30 flex h-14 items-center justify-between border-b",
-        "border-border bg-background px-4",
+        " bg-sidebar px-4",
       )}
     >
       {/* Left */}

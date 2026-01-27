@@ -77,37 +77,40 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
     }
 
     setLoading(true);
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          categoryId: form.categoryId,
+          status: form.status,
+          priority: form.priority,
+          startDate: form.startDate?.toISOString(),
+          dueDate: form.dueDate?.toISOString(),
+          estimatedMinutes: form.estimatedMinutes
+            ? Number(form.estimatedMinutes)
+            : undefined,
+          tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
+          energyLevel: form.energyLevel,
+          focusLevel: form.focusLevel,
+        }),
+      });
 
-    const res = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: form.title,
-        description: form.description,
-        categoryId: form.categoryId,
-        status: form.status,
-        priority: form.priority,
-        startDate: form.startDate?.toISOString(),
-        dueDate: form.dueDate?.toISOString(),
-        estimatedMinutes: form.estimatedMinutes
-          ? Number(form.estimatedMinutes)
-          : undefined,
-        tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
-        energyLevel: form.energyLevel,
-        focusLevel: form.focusLevel,
-      }),
-    });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || "Create task failed");
+        return;
+      }
 
-    setLoading(false);
-
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.message || "Create task failed");
-      return;
+      onCreated?.();
+      onClose();
+    } catch {
+      setError("Create task failed");
+    } finally {
+      setLoading(false);
     }
-
-    onCreated?.();
-    onClose();
   };
 
   return (

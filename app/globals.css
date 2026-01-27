@@ -209,5 +209,5 @@ h3 {
 }
 
 section {
-  @apply py-6 bg-card rounded-sm p-5 border border-border shadow-sm;
+  @apply bg-card rounded-sm p-6 border border-border shadow-sm;
 }
