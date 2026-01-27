@@ -17,7 +17,15 @@ const signOptions: SignOptions = {
 };
 
 export const signToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, signOptions);
+  return jwt.sign(
+    {
+      sub: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    },
+    JWT_SECRET,
+    signOptions,
+  );
 };
 
 export const verifyToken = (token: string): JwtPayload => {
