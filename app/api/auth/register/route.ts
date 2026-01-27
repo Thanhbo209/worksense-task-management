@@ -19,7 +19,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // EXTRACT AND TRIM FIELDS
     // Trim name to remove leading/trailing spaces
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     // Trim email to remove leading/trailing spaces

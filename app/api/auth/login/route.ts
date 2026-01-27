@@ -15,20 +15,25 @@ export async function POST(request: Request) {
     /// Parse the request body
     const body = await request.json();
     const { email, password } = body;
+    const normalizedEmail =
+      typeof email === "string" ? email.trim().toLowerCase() : "";
 
     // Validate input
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
         { message: INVALID_CREDENTIALS_MESSAGE },
         { status: 400 },
       );
     }
     // Find the user by email and include the password field
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+password",
+    );
 
-    // 👉 Fake hash để chống timing attack
+    // Fake hash to mitigate timing attacks when user doesn't exist
     const hashedPassword =
-      user?.password ?? "$2a$10$abcdefghijklmnopqrstuv1234567890abcdefghi";
+      user?.password ??
+      "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
     // Compare the provided password with the stored hashed password
     const isMatch = await comparePassword(password, hashedPassword);
