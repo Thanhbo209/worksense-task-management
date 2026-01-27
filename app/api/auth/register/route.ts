@@ -3,6 +3,9 @@ import { connectDB } from "@/app/lib/db";
 import { User } from "@/app/lib/models/User";
 import { hashPassword } from "@/app/utils/password";
 
+const GENERIC_REGISTER_ERROR = "Cannot register user at the moment";
+const FIELD_REGISTER_ERROR = "Some fields are missing or invalid";
+
 export async function POST(req: Request) {
   try {
     await connectDB();
@@ -11,12 +14,11 @@ export async function POST(req: Request) {
       body = await req.json();
     } catch {
       return NextResponse.json(
-        { message: "Invalid JSON body" },
+        { message: GENERIC_REGISTER_ERROR },
         { status: 400 },
       );
     }
 
-    // EXTRACT AND TRIM FIELDS
     // Trim name to remove leading/trailing spaces
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     // Trim email to remove leading/trailing spaces
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
     // VALIDATE
     if (!name || !email || !password) {
       return NextResponse.json(
-        { message: "Name, email and password are required" },
+        { message: FIELD_REGISTER_ERROR },
         { status: 400 },
       );
     }
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
-        { message: "User with this email already exists" },
+        { message: GENERIC_REGISTER_ERROR },
         { status: 409 },
       );
     }
@@ -60,13 +62,13 @@ export async function POST(req: Request) {
     const userObj = newUser.toObject();
     delete userObj.password;
     return NextResponse.json(
-      { message: "User created successfully", user: userObj },
+      { message: "Registration successful", user: userObj },
       { status: 201 },
     );
-  } catch (error) {
-    console.error("Register failed", error);
+  } catch {
+    console.error("Register failed");
     return NextResponse.json(
-      { message: "Internal Server Error", error },
+      { message: GENERIC_REGISTER_ERROR },
       { status: 500 },
     );
   }

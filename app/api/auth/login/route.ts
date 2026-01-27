@@ -5,6 +5,8 @@ import { comparePassword } from "@/app/utils/password";
 import { signToken } from "@/app/utils/jwt";
 import { cookies } from "next/headers";
 
+const INVALID_CREDENTIALS_MESSAGE = "Invalid email or password";
+
 export async function POST(request: Request) {
   try {
     // Connect to the database
@@ -13,35 +15,36 @@ export async function POST(request: Request) {
     /// Parse the request body
     const body = await request.json();
     const { email, password } = body;
+    const normalizedEmail =
+      typeof email === "string" ? email.trim().toLowerCase() : "";
 
     // Validate input
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
-        { message: "Email and password are required" },
+        { message: INVALID_CREDENTIALS_MESSAGE },
         { status: 400 },
       );
     }
     // Find the user by email and include the password field
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+password",
+    );
 
-    // If user not found or password does not match, return error
-    if (!user) {
-      return NextResponse.json(
-        { message: "Invalid email or password" },
-        { status: 401 },
-      );
-    }
+    // Fake hash to mitigate timing attacks when user doesn't exist
+    const hashedPassword =
+      user?.password ??
+      "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
     // Compare the provided password with the stored hashed password
-    const isMatch = await comparePassword(password, user.password as string);
+    const isMatch = await comparePassword(password, hashedPassword);
 
-    // If password does not match, return error
-    if (!isMatch) {
+    if (!user || !isMatch) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { message: INVALID_CREDENTIALS_MESSAGE },
         { status: 401 },
       );
     }
+
     const token = signToken({
       userId: user._id.toString(),
       email: user.email,
@@ -63,8 +66,7 @@ export async function POST(request: Request) {
     const userObj = user.toObject();
     delete userObj.password; // Remove password before sending response
     return NextResponse.json({ user: userObj }, { status: 200 });
-  } catch (error) {
-    console.error("Login Failed: ", error);
+  } catch {
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },
