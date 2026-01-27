@@ -1,7 +1,11 @@
-import React from "react";
+import Breadcrumbs from "@/components/ui/breadcrumbs";
 
 const UserDashboard = () => {
-  return <div>Dashboard</div>;
+  return (
+    <div>
+      <Breadcrumbs />
+    </div>
+  );
 };
 
 export default UserDashboard;
