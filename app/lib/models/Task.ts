@@ -10,7 +10,6 @@ const TaskSchema = new Schema(
       index: true,
     },
 
-    // Core info
     title: {
       type: String,
       required: true,
@@ -22,7 +21,6 @@ const TaskSchema = new Schema(
       trim: true,
     },
 
-    // Status flow
     status: {
       type: String,
       enum: ["todo", "in_progress", "done", "archived"],
