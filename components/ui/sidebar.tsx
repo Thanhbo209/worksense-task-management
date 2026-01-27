@@ -12,12 +12,13 @@ import {
   LogOut,
   PanelsTopLeft,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/dashboard/categories", label: "Categories", icon: Tags },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -50,7 +51,7 @@ export default function Sidebar() {
       {/* Toggle button */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute right-4.5 top-6 z-10 flex h-7 w-7 items-center justify-center rounded  hover:bg-muted bg-sidebar shadow"
+        className="absolute right-4.5 top-6 z-10 flex h-7 w-7 items-center justify-center rounded-md hover:bg-muted bg-sidebar shadow"
       >
         <PanelsTopLeft className="h-4 w-4" />
       </button>
@@ -71,10 +72,10 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded px-3 py-2 text-sm transition-colors",
+                "flex items-center gap-3 rounded px-2.5 py-2 text-sm transition-colors",
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "hover:bg-sidebar-accent ",
+                  : "hover:bg-sidebar-accent hover:text-sidebar-primary",
               )}
             >
               <Icon
@@ -82,7 +83,7 @@ export default function Sidebar() {
                   "h-5 w-5",
                   active
                     ? "text-sidebar-primary-foreground"
-                    : "text-muted-foreground",
+                    : "text-muted-foreground ",
                 )}
               />
 
@@ -92,15 +93,16 @@ export default function Sidebar() {
         })}
       </nav>
       <div className="absolute bottom-0 left-0 right-0 p-3">
-        <button
+        <Button
           aria-label="Logout"
+          variant={"outline"}
           onClick={handleLogout}
-          className="flex w-full bg-secondary items-center justify-center rounded px-1 py-1 text-sm transition-colors hover:bg-destructive"
+          className="flex w-full justify-center"
         >
           <div className="flex items-center gap-2">
             {!collapsed ? <span>Logout</span> : <LogOut className="h-4 w-4" />}
           </div>
-        </button>
+        </Button>
       </div>
     </aside>
   );

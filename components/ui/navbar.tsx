@@ -12,14 +12,14 @@ export default function Navbar({ title }: NavbarProps) {
     <header
       className={cn(
         "sticky top-0 z-30 flex h-14 items-center justify-between border-b",
-        "border-border bg-background px-4",
+        " bg-sidebar px-4",
       )}
     >
       {/* Left */}
       <div className="flex items-center gap-3">
-        <h1 className="text-sm font-semibold text-foreground">
+        <h3 className="text-sm font-semibold text-foreground">
           {title ?? "Dashboard"}
-        </h1>
+        </h3>
       </div>
 
       {/* Right */}
