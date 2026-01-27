@@ -93,8 +93,9 @@ export default function Sidebar() {
       </nav>
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <button
+          aria-label="Logout"
           onClick={handleLogout}
-          className="flex w-full bg-secondary items-center  justify-center rounded px-3 py-3 text-sm transition-colors hover:bg-destructive"
+          className="flex w-full bg-secondary items-center justify-center rounded px-1 py-1 text-sm transition-colors hover:bg-destructive"
         >
           <div className="flex items-center gap-2">
             {!collapsed ? <span>Logout</span> : <LogOut className="h-4 w-4" />}

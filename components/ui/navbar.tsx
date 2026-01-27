@@ -1,6 +1,5 @@
 "use client";
 
-import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavbarProps {
@@ -8,7 +7,7 @@ interface NavbarProps {
   title?: string;
 }
 
-export default function Navbar({ onToggleSidebar, title }: NavbarProps) {
+export default function Navbar({ title }: NavbarProps) {
   return (
     <header
       className={cn(
@@ -18,15 +17,6 @@ export default function Navbar({ onToggleSidebar, title }: NavbarProps) {
     >
       {/* Left */}
       <div className="flex items-center gap-3">
-        {onToggleSidebar && (
-          <button
-            onClick={onToggleSidebar}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent"
-          >
-            <Menu size={20} />
-          </button>
-        )}
-
         <h1 className="text-sm font-semibold text-foreground">
           {title ?? "Dashboard"}
         </h1>
