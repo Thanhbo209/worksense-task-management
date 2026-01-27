@@ -21,7 +21,7 @@ export default function Breadcrumbs() {
   });
 
   return (
-    <nav className="flex items-center text-sm text-muted-foreground">
+    <nav className="flex items-center text-sm  text-muted-foreground">
       <Link href="/" className="hover:text-foreground">
         Home
       </Link>

@@ -1,11 +1,5 @@
-import Breadcrumbs from "@/components/ui/breadcrumbs";
-
 const UserDashboard = () => {
-  return (
-    <div>
-      <Breadcrumbs />
-    </div>
-  );
+  return <div></div>;
 };
 
 export default UserDashboard;

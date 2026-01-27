@@ -195,3 +195,19 @@ a {
     @apply bg-background text-foreground;
   }
 }
+
+h1 {
+  @apply text-3xl font-bold;
+}
+
+h2 {
+  @apply text-2xl font-semibold;
+}
+
+h3 {
+  @apply text-lg font-semibold;
+}
+
+section {
+  @apply py-6 bg-card rounded-sm p-5 border border-border shadow-sm;
+}

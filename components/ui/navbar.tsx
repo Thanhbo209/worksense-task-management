@@ -17,9 +17,9 @@ export default function Navbar({ title }: NavbarProps) {
     >
       {/* Left */}
       <div className="flex items-center gap-3">
-        <h1 className="text-sm font-semibold text-foreground">
+        <h3 className="text-sm font-semibold text-foreground">
           {title ?? "Dashboard"}
-        </h1>
+        </h3>
       </div>
 
       {/* Right */}
