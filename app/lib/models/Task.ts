@@ -47,11 +47,13 @@ const TaskSchema = new Schema(
     },
 
     estimatedMinutes: {
-      type: Number, // dự đoán thời gian làm
+      type: Number,
+      min: 0,
     },
 
     actualMinutes: {
       type: Number, // dùng cho analytics sau này
+      min: 0,
     },
 
     // Planning & organization
@@ -85,6 +87,8 @@ const TaskSchema = new Schema(
 TaskSchema.pre("save", async function () {
   if (this.isModified("status") && this.status === "done") {
     this.completedAt = new Date();
+  } else if (this.isModified("status") && this.status !== "done") {
+    this.completedAt = undefined;
   }
 });
 
