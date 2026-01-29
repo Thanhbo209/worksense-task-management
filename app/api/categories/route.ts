@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/lib/auth";
-import { Category } from "@/app/lib/models/Category";
+import Category from "@/app/lib/models/Category";
 import { connectDB } from "@/app/lib/db";
 
 export async function GET() {

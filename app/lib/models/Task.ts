@@ -90,4 +90,6 @@ TaskSchema.pre("save", async function () {
   }
 });
 
-export const Task = models.Task || model("Task", TaskSchema);
+const Task = models.Task || model("Task", TaskSchema);
+
+export default Task;

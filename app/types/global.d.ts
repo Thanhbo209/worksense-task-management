@@ -8,11 +8,13 @@ declare global {
       }
     | undefined;
 
+  type TaskStatus = "todo" | "in_progress" | "done" | "archived";
+
   interface Task {
     _id: string;
     title: string;
     description?: string;
-    status: "todo" | "in-progress" | "done";
+    status: TaskStatus;
     priority: "low" | "medium" | "high";
     categoryId?: {
       _id: string;
@@ -22,6 +24,23 @@ declare global {
     tags?: string[];
     energyLevel?: number;
     focusLevel?: number;
+  }
+
+  interface TaskColumnProps {
+    status: Task["status"];
+    title: string;
+    tasks: Task[];
+    onArchive?: (taskId: string) => void;
+  }
+
+  interface TaskCardProps {
+    task: Task;
+    onArchive?: (taskId: string) => void;
+  }
+
+  interface TaskBoardProps {
+    initialTasks: Task[];
+    onTaskUpdate?: (taskId: string, newStatus: Task["status"]) => Promise<void>;
   }
 }
 

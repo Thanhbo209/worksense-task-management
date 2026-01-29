@@ -2,6 +2,7 @@ import CreateTaskButton from "@/components/tasks/CreateTaskButton";
 import TasksPage from "@/components/tasks/tasksection";
 import { Button } from "@/components/ui/button";
 import { Archive } from "lucide-react";
+import Link from "next/link";
 
 const page = () => {
   return (
@@ -13,13 +14,19 @@ const page = () => {
             Drag and drop tasks to update their status
           </p>
         </div>
+
         <div className="flex gap-2">
           <CreateTaskButton />
-          <Button variant={"secondary"}>
-            <Archive />
-          </Button>
+
+          <Link href="/dashboard/tasks/archived">
+            <Button variant="secondary">
+              <Archive className="mr-2 h-4 w-4" />
+              Archived
+            </Button>
+          </Link>
         </div>
       </div>
+
       <TasksPage />
     </section>
   );
