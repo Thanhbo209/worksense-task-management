@@ -78,7 +78,7 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
           <Archive size={14} />
         </Button>
         <div {...listeners} className="cursor-grab active:cursor-grabbing">
-          <Button variant={"outline"}>
+          <Button variant={"outline"} type="button">
             <GripVertical />
           </Button>
         </div>
