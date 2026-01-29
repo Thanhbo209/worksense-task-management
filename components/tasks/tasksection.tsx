@@ -37,6 +37,10 @@ export default function TasksPage() {
         body: JSON.stringify({ status: newStatus }),
       });
 
+      if (!res.ok) {
+        throw new Error("Failed to update task");
+      }
+
       const updatedTask = await res.json();
 
       setTasks((prev) =>
