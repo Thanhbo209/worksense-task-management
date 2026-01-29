@@ -52,7 +52,7 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="p-8 rounded-sm">
+    <div className="pt-8 rounded-sm">
       <div className="w-full mx-auto">
         {loading ? (
           <TaskBoardSkeleton />

@@ -18,8 +18,9 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Archive, GoalIcon, Zap } from "lucide-react";
+import { Archive, GoalIcon, GripVertical, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyDemo } from "@/components/tasks/skeleton/EmptyTask";
 
 /* =======================
    Task Card
@@ -54,31 +55,37 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
       "
     >
       {/* Archive button – NOT draggable */}
-      <Button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onArchive?.(task._id);
-        }}
-        variant={"ghost"}
-        className="
-          absolute top-2 right-2 z-10
-          opacity-0 group-hover:opacity-100
-          group-focus-within:opacity-100
-          focus-visible:opacity-100
-          transition-opacity
-          text-xs rounded-full
-        "
+      <div
+        className="flex absolute top-2 right-2 z-10
+        opacity-0 group-hover:opacity-100
+        group-focus-within:opacity-100
+        focus-visible:opacity-100
+        transition-opacity
+        text-xs rounded-full"
       >
-        <Archive size={14} />
-      </Button>
+        <Button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onArchive?.(task._id);
+          }}
+          variant={"ghost"}
+          className="
+        
+        "
+        >
+          <Archive size={14} />
+        </Button>
+        <div {...listeners} className="cursor-grab active:cursor-grabbing">
+          <Button variant={"outline"} type="button">
+            <GripVertical />
+          </Button>
+        </div>
+      </div>
 
       {/* Drag handle */}
-      <div
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing py-1 flex gap-3 items-center"
-      >
+      <div className=" py-1 flex gap-3 items-center">
         <h3 className="font-semibold ">{task.title}</h3>
         <div className="bg-primary/20 rounded-md px-4 py-0.5 text-sm text-primary text-center">
           <p>
@@ -159,7 +166,7 @@ function TaskColumn({ status, title, tasks, onArchive }: TaskColumnProps) {
 
       {tasks.length === 0 && (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          Drop task here
+          <EmptyDemo />
         </div>
       )}
     </div>
