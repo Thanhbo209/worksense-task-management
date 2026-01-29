@@ -61,7 +61,7 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
           e.stopPropagation();
           onArchive?.(task._id);
         }}
-        variant={"destructive"}
+        variant={"ghost"}
         className="
           absolute top-2 right-2 z-10
           opacity-0 group-hover:opacity-100
@@ -69,15 +69,20 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
           focus-visible:opacity-100
           transition-opacity
           text-xs rounded-full
-          hover:scale-105
         "
       >
         <Archive size={14} />
       </Button>
 
       {/* Drag handle */}
-      <div {...listeners} className="cursor-grab active:cursor-grabbing">
-        <h3 className="font-semibold mb-2">{task.title}</h3>
+      <div
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing py-1 flex gap-3 items-center"
+      >
+        <h3 className="font-semibold ">{task.title}</h3>
+        <div className="bg-primary/20 rounded-md px-4 py-0.5 text-sm text-primary text-center">
+          {task.categoryId?.name ?? "Uncategorized"}
+        </div>
       </div>
 
       {task.description && (
@@ -96,17 +101,20 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
       </div>
 
       {(task.energyLevel !== undefined || task.focusLevel !== undefined) && (
-        <div className="mt-3 pt-3 border-t flex justify-between text-xs text-muted-foreground">
-          {task.energyLevel !== undefined && (
-            <span className="flex items-center gap-1">
-              <Zap size={14} /> {task.energyLevel}/5
-            </span>
-          )}
-          {task.focusLevel !== undefined && (
-            <span className="flex items-center gap-1">
-              <GoalIcon size={14} /> {task.focusLevel}/5
-            </span>
-          )}
+        <div className="mt-3 pt-3 gap-2 border-t flex justify-between text-xs text-muted-foreground">
+          <div className="">{task.dueDate}</div>
+          <div className="flex gap-2">
+            {task.energyLevel !== undefined && (
+              <p className="flex items-center gap-1">
+                <Zap size={20} color="yellow" /> {task.energyLevel}/5
+              </p>
+            )}
+            {task.focusLevel !== undefined && (
+              <p className="flex items-center gap-1">
+                <GoalIcon size={20} color="red" /> {task.focusLevel}/5
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
