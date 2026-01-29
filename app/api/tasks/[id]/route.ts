@@ -51,6 +51,7 @@ export async function PATCH(
     });
 
     await task.save();
+    await task.populate("categoryId", "name");
 
     return NextResponse.json(task);
   } catch (error) {

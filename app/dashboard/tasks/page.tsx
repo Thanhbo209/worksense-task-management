@@ -18,12 +18,12 @@ const page = () => {
         <div className="flex gap-2">
           <CreateTaskButton />
 
-          <Link href="/dashboard/tasks/archived">
-            <Button variant="secondary">
+          <Button asChild variant="secondary">
+            <Link href="/dashboard/tasks/archived">
               <Archive className="mr-2 h-4 w-4" />
               Archived
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 

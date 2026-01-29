@@ -4,36 +4,45 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
-interface ArchivedTaskProps {
-  _id: string;
-  title: string;
-  description?: string;
-}
-
 export default function ArchivedTasksPage() {
   const [tasks, setTasks] = useState<ArchivedTaskProps[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    fetch("/api/tasks?status=archived")
-      .then((res) => res.json())
-      .then((data) => {
-        setTasks(data);
-        setLoading(false);
-      });
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/tasks?status=archived");
+        if (!res.ok) throw new Error("Failed to load archived tasks");
+        const data = await res.json();
+        if (!cancelled) setTasks(data);
+      } catch (err) {
+        if (!cancelled) setError("Failed to load archived tasks");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleDelete = async (taskId: string) => {
     const confirmed = confirm("Delete this task permanently?");
     if (!confirmed) return;
 
-    await fetch(`/api/tasks/${taskId}`, {
+    const res = await fetch(`/api/tasks/${taskId}`, {
       method: "DELETE",
     });
-
+    if (!res.ok) {
+      setError("Failed to delete task. Please try again.");
+      return;
+    }
     setTasks((prev) => prev.filter((t) => t._id !== taskId));
   };
-
+  if (error) {
+    return <p className="text-destructive text-sm">{error}</p>;
+  }
   if (loading) return <p>Loading...</p>;
 
   if (tasks.length === 0) {

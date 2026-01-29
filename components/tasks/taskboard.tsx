@@ -65,6 +65,8 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
         className="
           absolute top-2 right-2 z-10
           opacity-0 group-hover:opacity-100
+          group-focus-within:opacity-100
+          focus-visible:opacity-100
           transition-opacity
           text-xs rounded-full
           hover:scale-105
@@ -216,8 +218,13 @@ export default function TaskBoard({
     const taskId = active.id as string;
     const newStatus = over.id as Task["status"];
 
-    // ✅ chặn Sortable-* tuyệt đối
-    if (!VALID_STATUSES.includes(newStatus)) return;
+    const overId = over.id as string;
+    const newValidStatus = VALID_STATUSES.includes(overId as Task["status"])
+      ? (overId as Task["status"])
+      : (over.data.current?.sortable?.containerId as
+          | Task["status"]
+          | undefined);
+    if (!newValidStatus || !VALID_STATUSES.includes(newValidStatus)) return;
 
     const task = tasks.find((t) => t._id === taskId);
     if (!task || task.status === newStatus) return;

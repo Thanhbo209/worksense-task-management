@@ -42,6 +42,12 @@ declare global {
     initialTasks: Task[];
     onTaskUpdate?: (taskId: string, newStatus: Task["status"]) => Promise<void>;
   }
+
+  interface ArchivedTaskProps {
+    _id: string;
+    title: string;
+    description?: string;
+  }
 }
 
 export {};
