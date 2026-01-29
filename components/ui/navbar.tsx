@@ -22,10 +22,11 @@ export default function Navbar({ title }: NavbarProps) {
         <Link
           href={"https://github.com/Thanhbo209/worksense-task-management"}
           target="_blank"
+          rel="noopener noreferrer"
+          aria-label="WorkSense GitHub repository"
           className="bg-card p-1.5 rounded-full mt-auto hover:bg-primary"
         >
-          {" "}
-          <GithubIcon size={24} />
+          <GithubIcon size={24} aria-hidden="true" />
         </Link>
         <h3 className="text-sm font-semibold text-foreground">
           {title ?? "Dashboard"}

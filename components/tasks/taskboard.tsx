@@ -162,14 +162,12 @@ function TaskColumn({ status, title, tasks, onArchive }: TaskColumnProps) {
       </div>
       {/* TASK LIST = DROP ZONE CHÍNH */}
       <div className="flex-1 overflow-y-auto scrollbar-primary pr-2">
-        {" "}
-        {/* 🔥 chiếm hết chiều cao còn lại */}
         <SortableContext
           id={status}
           items={taskIds}
           strategy={verticalListSortingStrategy}
         >
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 ">
             {tasks.map((task) => (
               <TaskCard key={task._id} task={task} onArchive={onArchive} />
             ))}
@@ -269,8 +267,9 @@ export default function TaskBoard({
 
     if (!newValidStatus || !VALID_STATUSES.includes(newValidStatus)) return;
 
+    const finalStatus = newValidStatus;
     const task = tasks.find((t) => t._id === taskId);
-    if (!task || task.status === newValidStatus) return;
+    if (!task || task.status === finalStatus) return;
 
     // optimistic update
     setTasks((prev) =>
