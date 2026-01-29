@@ -19,6 +19,7 @@ declare global {
     categoryId?: {
       _id: string;
       name: string;
+      icon: string;
     };
     dueDate?: string;
     tags?: string[];
