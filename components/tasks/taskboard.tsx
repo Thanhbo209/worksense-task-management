@@ -10,7 +10,6 @@ import {
   useSensor,
   useSensors,
   closestCorners,
-  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -48,11 +47,13 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
       style={style}
       {...attributes}
       className="
-        group relative
-        rounded-sm border bg-card p-4
-        shadow-sm hover:shadow-md
-        transition-shadow
-      "
+    w-full            
+    group relative
+    rounded-sm border bg-card p-4 mt-10
+    shadow-sm hover:shadow-md
+    transition-shadow
+    pointer-events-auto
+  "
     >
       {/* Archive button – NOT draggable */}
       <div
@@ -136,8 +137,11 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
 ======================= */
 
 function TaskColumn({ status, title, tasks, onArchive }: TaskColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef, isOver } = useSortable({
     id: status,
+    data: {
+      type: "column",
+    },
   });
 
   const taskIds = tasks.map((t) => t._id);
@@ -146,26 +150,39 @@ function TaskColumn({ status, title, tasks, onArchive }: TaskColumnProps) {
     <div
       ref={setNodeRef}
       className={`
-        flex-1 min-w-[320px] rounded border p-4
-        transition-all duration-200
-        ${isOver ? "bg-muted/50 border-primary shadow-md" : "bg-background"}
+        flex flex-col bg-background flex-1 min-w-[320px] h-130   
+        rounded border p-4 transition-all
+        ${isOver ? "bg-muted/50 border-primary ring-2 ring-primary/20" : ""}
       `}
     >
+      {/* HEADER */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-bold text-lg">{title}</h2>
         <span className="text-sm font-semibold">{tasks.length}</span>
       </div>
-
-      <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-        <div className="space-y-3">
-          {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} onArchive={onArchive} />
-          ))}
-        </div>
-      </SortableContext>
-
+      {/* TASK LIST = DROP ZONE CHÍNH */}
+      <div className="flex-1 overflow-y-auto scrollbar-primary pr-2">
+        {" "}
+        {/* 🔥 chiếm hết chiều cao còn lại */}
+        <SortableContext
+          id={status}
+          items={taskIds}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="flex-1 overflow-y-auto">
+            {tasks.map((task) => (
+              <TaskCard key={task._id} task={task} onArchive={onArchive} />
+            ))}
+          </div>
+        </SortableContext>
+        {/* PLACEHOLDER khi kéo vào column */}
+        {isOver && (
+          <div className="absolute inset-x-4 top-16 h-6 rounded border border-dashed bg-muted/30 pointer-events-none" />
+        )}
+      </div>
+      {/* EMPTY */}
       {tasks.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground text-sm">
+        <div className="text-center bg-card h-full text-muted-foreground text-sm">
           <EmptyDemo />
         </div>
       )}
@@ -234,26 +251,36 @@ export default function TaskBoard({
     if (!over) return;
 
     const taskId = active.id as string;
-    const newStatus = over.id as Task["status"];
-
     const overId = over.id as string;
-    const newValidStatus = VALID_STATUSES.includes(overId as Task["status"])
-      ? (overId as Task["status"])
-      : (over.data.current?.sortable?.containerId as
-          | Task["status"]
-          | undefined);
+
+    // Determine the new status - either the droppable column or the container of a sortable item
+    let newValidStatus: Task["status"] | undefined;
+
+    // Check if dropped directly on a column
+    if (VALID_STATUSES.includes(overId as Task["status"])) {
+      newValidStatus = overId as Task["status"];
+    }
+    // Check if dropped on another task (get its container)
+    else {
+      newValidStatus = over.data.current?.sortable?.containerId as
+        | Task["status"]
+        | undefined;
+    }
+
     if (!newValidStatus || !VALID_STATUSES.includes(newValidStatus)) return;
 
     const task = tasks.find((t) => t._id === taskId);
-    if (!task || task.status === newStatus) return;
+    if (!task || task.status === newValidStatus) return;
 
     // optimistic update
     setTasks((prev) =>
-      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)),
+      prev.map((t) =>
+        t._id === taskId ? { ...t, status: newValidStatus } : t,
+      ),
     );
 
     try {
-      await onTaskUpdate?.(taskId, newStatus);
+      await onTaskUpdate?.(taskId, newValidStatus);
     } catch (err) {
       // rollback
       setTasks((prev) =>
@@ -270,7 +297,7 @@ export default function TaskBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-6 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto items-stretch">
         <TaskColumn
           status="todo"
           title="To Do"
@@ -293,7 +320,7 @@ export default function TaskBoard({
 
       <DragOverlay>
         {activeTask && (
-          <div className="opacity-90 rotate-3 scale-105">
+          <div className="opacity-60 rotate-2 ">
             <TaskCard task={activeTask} />
           </div>
         )}
