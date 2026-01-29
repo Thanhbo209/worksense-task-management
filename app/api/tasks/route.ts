@@ -13,12 +13,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ LẤY QUERY PARAM
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    // ✅ BUILD QUERY ĐỘNG
-    const query: any = {
+    const query: string = {
       userId: user.id,
     };
 
