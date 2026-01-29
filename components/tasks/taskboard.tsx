@@ -81,7 +81,10 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
       >
         <h3 className="font-semibold ">{task.title}</h3>
         <div className="bg-primary/20 rounded-md px-4 py-0.5 text-sm text-primary text-center">
-          {task.categoryId?.name ?? "Uncategorized"}
+          <p>
+            {task.categoryId?.icon}
+            {task.categoryId?.name ?? "Uncategorized"}
+          </p>
         </div>
       </div>
 

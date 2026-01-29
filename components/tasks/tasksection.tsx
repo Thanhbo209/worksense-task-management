@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import TaskBoard from "@/components/tasks/taskboard";
+import TaskBoardSkeleton from "@/components/tasks/skeleton/TaskBoardSkeleton";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -13,13 +14,13 @@ export default function TasksPage() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch("/api/tasks");
-      if (response.ok) {
-        const data = await response.json();
+      const res = await fetch("/api/tasks");
+      if (res.ok) {
+        const data = await res.json();
         setTasks(data);
       }
-    } catch (error) {
-      console.error("Failed to fetch tasks:", error);
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
     } finally {
       setLoading(false);
     }
@@ -30,39 +31,34 @@ export default function TasksPage() {
     newStatus: Task["status"],
   ) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}`, {
+      const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => null);
-        throw new Error(err?.message || "Failed to update task");
+      if (!res.ok) {
+        throw new Error("Failed to update task");
       }
 
-      const updatedTask = await response.json();
+      const updatedTask = await res.json();
 
       setTasks((prev) =>
-        prev.map((task) => (task._id === updatedTask._id ? updatedTask : task)),
+        prev.map((t) => (t._id === updatedTask._id ? updatedTask : t)),
       );
-    } catch (error) {
-      console.error("Update task failed:", error);
+    } catch (err) {
+      console.error("Update task failed:", err);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="">Loading tasks...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className=" p-8 rounded-sm">
+    <div className="p-8 rounded-sm">
       <div className="w-full mx-auto">
-        <TaskBoard initialTasks={tasks} onTaskUpdate={handleTaskUpdate} />
+        {loading ? (
+          <TaskBoardSkeleton />
+        ) : (
+          <TaskBoard initialTasks={tasks} onTaskUpdate={handleTaskUpdate} />
+        )}
       </div>
     </div>
   );
