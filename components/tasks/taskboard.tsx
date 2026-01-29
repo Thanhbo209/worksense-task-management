@@ -10,6 +10,7 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -17,13 +18,14 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GoalIcon, Zap } from "lucide-react";
+import { Archive, GoalIcon, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-interface TaskCardProps {
-  task: Task;
-}
+/* =======================
+   Task Card
+======================= */
 
-function TaskCard({ task }: TaskCardProps) {
+function TaskCard({ task, onArchive }: TaskCardProps) {
   const {
     attributes,
     listeners,
@@ -39,142 +41,130 @@ function TaskCard({ task }: TaskCardProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const getPriorityBars = (priority: "low" | "medium" | "high") => {
-    const bars = {
-      low: 1,
-      medium: 2,
-      high: 3,
-    };
-
-    const colors = {
-      low: "bg-blue-500",
-      medium: "bg-yellow-500",
-      high: "bg-red-500",
-    };
-    return (
-      <div className="flex gap-1 items-center">
-        {[1, 2, 3].map((index) => (
-          <div
-            key={index}
-            className={`w-1 h-4 rounded-full transition-all ${
-              index <= bars[priority] ? colors[priority] : "bg-muted"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
-      className=" rounded-sm border bg-card p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
+      className="
+        group relative
+        rounded-sm border bg-card p-4
+        shadow-sm hover:shadow-md
+        transition-shadow
+      "
     >
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="font-semibold  flex-1">{task.title}</h3>
-        <div className="ml-2" title={`Priority: ${task.priority}`}>
-          {getPriorityBars(task.priority)}
-        </div>
+      {/* Archive button – NOT draggable */}
+      <Button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onArchive?.(task._id);
+        }}
+        variant={"destructive"}
+        className="
+          absolute top-2 right-2 z-10
+          opacity-0 group-hover:opacity-100
+          group-focus-within:opacity-100
+          focus-visible:opacity-100
+          transition-opacity
+          text-xs rounded-full
+          hover:scale-105
+        "
+      >
+        <Archive size={14} />
+      </Button>
+
+      {/* Drag handle */}
+      <div {...listeners} className="cursor-grab active:cursor-grabbing">
+        <h3 className="font-semibold mb-2">{task.title}</h3>
       </div>
 
       {task.description && (
         <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
       )}
 
-      <div className="flex flex-wrap gap-2 items-center">
-        {task.categoryId && (
-          <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
-            {task.categoryId.name}
+      <div className="flex flex-wrap gap-2 text-xs">
+        {task.tags?.map((tag, idx) => (
+          <span
+            key={idx}
+            className="px-2 py-1 bg-muted border rounded text-muted-foreground"
+          >
+            #{tag}
           </span>
-        )}
-
-        {task.tags && task.tags.length > 0 && (
-          <>
-            {task.tags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-1 bg-muted border text-muted-foreground rounded text-xs"
-              >
-                #{tag}
-              </span>
-            ))}
-          </>
-        )}
+        ))}
       </div>
 
       {(task.energyLevel !== undefined || task.focusLevel !== undefined) && (
-        <div className="mt-3 pt-3 border-t flex justify-between items-center gap-4 text-xs text-muted-foreground">
-          {task.dueDate && (
-            <span className="text-xs text-primary">
-              Due: {new Date(task.dueDate).toLocaleDateString()}
+        <div className="mt-3 pt-3 border-t flex justify-between text-xs text-muted-foreground">
+          {task.energyLevel !== undefined && (
+            <span className="flex items-center gap-1">
+              <Zap size={14} /> {task.energyLevel}/5
             </span>
           )}
-          <div className="flex gap-2">
-            {task.energyLevel !== undefined && (
-              <div className="flex justify-center items-center gap-1">
-                <span>
-                  <Zap size={17} color="white" />
-                </span>
-                <span>{task.energyLevel} / 5</span>
-              </div>
-            )}
-            {task.focusLevel !== undefined && (
-              <div className="flex items-center gap-1">
-                <span>
-                  <GoalIcon size={17} color="white" />
-                </span>
-                <span>{task.focusLevel} / 5</span>
-              </div>
-            )}
-          </div>
+          {task.focusLevel !== undefined && (
+            <span className="flex items-center gap-1">
+              <GoalIcon size={14} /> {task.focusLevel}/5
+            </span>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-interface TaskColumnProps {
-  status: "todo" | "in-progress" | "done";
-  title: string;
-  tasks: Task[];
-}
+/* =======================
+   Task Column
+======================= */
 
-function TaskColumn({ title, tasks }: TaskColumnProps) {
-  const taskIds = tasks.map((task) => task._id);
+function TaskColumn({ status, title, tasks, onArchive }: TaskColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+  });
+
+  const taskIds = tasks.map((t) => t._id);
 
   return (
-    <div className={`flex-1 min-w-[320px] bg-background rounded border p-4`}>
+    <div
+      ref={setNodeRef}
+      className={`
+        flex-1 min-w-[320px] rounded border p-4
+        transition-all duration-200
+        ${isOver ? "bg-muted/50 border-primary shadow-md" : "bg-background"}
+      `}
+    >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-bold text-lg ">{title}</h2>
-        <span className=" px-2 py-1 rounded-full text-sm font-semibold ">
-          {tasks.length}
-        </span>
+        <h2 className="font-bold text-lg">{title}</h2>
+        <span className="text-sm font-semibold">{tasks.length}</span>
       </div>
 
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <div className="space-y-3">
           {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} />
+            <TaskCard key={task._id} task={task} onArchive={onArchive} />
           ))}
         </div>
       </SortableContext>
 
       {tasks.length === 0 && (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          No tasks yet
+          Drop task here
         </div>
       )}
     </div>
   );
 }
 
-interface TaskBoardProps {
-  initialTasks: Task[];
-  onTaskUpdate?: (taskId: string, newStatus: Task["status"]) => Promise<void>;
-}
+/* =======================
+   Task Board
+======================= */
+
+const VALID_STATUSES: Task["status"][] = [
+  "todo",
+  "in_progress",
+  "done",
+  "archived",
+];
 
 export default function TaskBoard({
   initialTasks,
@@ -185,18 +175,38 @@ export default function TaskBoard({
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const task = tasks.find((t) => t._id === active.id);
-    if (task) {
-      setActiveTask(task);
+  const handleArchive = async (taskId: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "archived" }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to archive task");
+      }
+
+      // Update local state
+      setTasks((prev) =>
+        prev.map((task) =>
+          task._id === taskId ? { ...task, status: "archived" } : task,
+        ),
+      );
+    } catch (err) {
+      console.error(err);
     }
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t._id === event.active.id);
+    if (task) setActiveTask(task);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -208,35 +218,32 @@ export default function TaskBoard({
     const taskId = active.id as string;
     const newStatus = over.id as Task["status"];
 
+    const overId = over.id as string;
+    const newValidStatus = VALID_STATUSES.includes(overId as Task["status"])
+      ? (overId as Task["status"])
+      : (over.data.current?.sortable?.containerId as
+          | Task["status"]
+          | undefined);
+    if (!newValidStatus || !VALID_STATUSES.includes(newValidStatus)) return;
+
     const task = tasks.find((t) => t._id === taskId);
     if (!task || task.status === newStatus) return;
 
-    // Optimistic update
-    setTasks((prevTasks) =>
-      prevTasks.map((t) =>
-        t._id === taskId ? { ...t, status: newStatus } : t,
-      ),
+    // optimistic update
+    setTasks((prev) =>
+      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)),
     );
 
-    // Call the API to update the task
-    if (onTaskUpdate) {
-      try {
-        await onTaskUpdate(taskId, newStatus);
-      } catch (error) {
-        // Revert on error
-        setTasks((prevTasks) =>
-          prevTasks.map((t) =>
-            t._id === taskId ? { ...t, status: task.status } : t,
-          ),
-        );
-        console.error("Failed to update task:", error);
-      }
+    try {
+      await onTaskUpdate?.(taskId, newStatus);
+    } catch (err) {
+      // rollback
+      setTasks((prev) =>
+        prev.map((t) => (t._id === taskId ? { ...t, status: task.status } : t)),
+      );
+      console.error(err);
     }
   };
-
-  const todoTasks = tasks.filter((task) => task.status === "todo");
-  const inProgressTasks = tasks.filter((task) => task.status === "in-progress");
-  const doneTasks = tasks.filter((task) => task.status === "done");
 
   return (
     <DndContext
@@ -245,27 +252,33 @@ export default function TaskBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex  gap-6 overflow-x-auto pb-4">
-        <SortableContext
-          items={["todo", "in-progress", "done"]}
-          strategy={verticalListSortingStrategy}
-        >
-          <TaskColumn status="todo" title="To Do" tasks={todoTasks} />
-          <TaskColumn
-            status="in-progress"
-            title="In Progress"
-            tasks={inProgressTasks}
-          />
-          <TaskColumn status="done" title="Done" tasks={doneTasks} />
-        </SortableContext>
+      <div className="flex gap-6 overflow-x-auto pb-4">
+        <TaskColumn
+          status="todo"
+          title="To Do"
+          tasks={tasks.filter((t) => t.status === "todo")}
+          onArchive={handleArchive}
+        />
+        <TaskColumn
+          status="in_progress"
+          title="In Progress"
+          tasks={tasks.filter((t) => t.status === "in_progress")}
+          onArchive={handleArchive}
+        />
+        <TaskColumn
+          status="done"
+          title="Done"
+          tasks={tasks.filter((t) => t.status === "done")}
+          onArchive={handleArchive}
+        />
       </div>
 
       <DragOverlay>
-        {activeTask ? (
+        {activeTask && (
           <div className="opacity-90 rotate-3 scale-105">
             <TaskCard task={activeTask} />
           </div>
-        ) : null}
+        )}
       </DragOverlay>
     </DndContext>
   );
