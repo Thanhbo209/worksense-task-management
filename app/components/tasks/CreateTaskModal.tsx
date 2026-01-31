@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
+import { Label } from "@/app/components/ui/label";
+import { Calendar } from "@/app/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/app/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -22,7 +22,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/app/components/ui/select";
 
 type Props = {
   open: boolean;
@@ -44,7 +44,6 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
     description: "",
     categoryId: "",
     status: "todo",
-    priority: "medium",
     startDate: undefined as Date | undefined,
     dueDate: undefined as Date | undefined,
     estimatedMinutes: "",
@@ -86,7 +85,6 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
           description: form.description,
           categoryId: form.categoryId,
           status: form.status,
-          priority: form.priority,
           startDate: form.startDate?.toISOString(),
           dueDate: form.dueDate?.toISOString(),
           estimatedMinutes: form.estimatedMinutes
@@ -197,26 +195,6 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
                     <SelectItem value="todo">Todo</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="done">Done</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Priority</Label>
-              <Select
-                value={form.priority}
-                onValueChange={(value) => setForm({ ...form, priority: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Priority</SelectLabel>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

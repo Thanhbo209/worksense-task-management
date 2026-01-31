@@ -4,7 +4,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty";
+} from "@/app/components/ui/empty";
 import { Hand } from "lucide-react";
 
 export function EmptyDemo() {

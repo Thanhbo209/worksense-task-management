@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import TaskBoard from "@/components/tasks/taskboard";
-import TaskBoardSkeleton from "@/components/tasks/skeleton/TaskBoardSkeleton";
+import TaskBoard from "@/app/components/tasks/taskboard";
+import TaskBoardSkeleton from "@/app/components/tasks/skeleton/TaskBoardSkeleton";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);

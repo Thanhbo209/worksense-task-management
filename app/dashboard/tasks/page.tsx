@@ -1,6 +1,6 @@
-import CreateTaskButton from "@/components/tasks/CreateTaskButton";
-import TasksPage from "@/components/tasks/tasksection";
-import { Button } from "@/components/ui/button";
+import CreateTaskButton from "@/app/components/tasks/CreateTaskButton";
+import TasksPage from "@/app/components/tasks/tasksection";
+import { Button } from "@/app/components/ui/button";
 import { Archive } from "lucide-react";
 import Link from "next/link";
 

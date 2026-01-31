@@ -32,7 +32,7 @@ export async function connectDB() {
       .connect(uri, {
         bufferCommands: false,
       })
-      .then((m) => m.connection); // 🔑 LẤY connection
+      .then((m) => m.connection); // LẤY connection
   }
 
   try {

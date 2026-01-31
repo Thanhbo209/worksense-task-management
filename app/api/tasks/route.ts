@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/db";
 import Task from "@/app/lib/models/Task";
+import { calculatePriorityScoreDaily } from "@/app/lib/func/calculatePriorityScoreDaily";
+import { scoreToPriority } from "@/app/lib/func/scoreToPriority";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,7 +18,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const query: string = {
+    const query: any = {
       userId: user.id,
     };
 
@@ -24,11 +26,35 @@ export async function GET(req: NextRequest) {
       query.status = status;
     }
 
-    const tasks = await Task.find(query)
-      .populate("categoryId", "name")
-      .sort({ createdAt: -1 });
+    const tasks = await Task.find(query).populate("categoryId", "name");
 
-    return NextResponse.json(tasks);
+    const updatedTasks = await Promise.all(
+      tasks.map(async (task) => {
+        const newScore = calculatePriorityScoreDaily(task);
+        const newPriority = scoreToPriority(newScore);
+
+        if (task.priorityScore !== newScore || task.priority !== newPriority) {
+          task.priorityScore = newScore;
+          task.priority = newPriority;
+          await task.save();
+        }
+
+        return task;
+      }),
+    );
+
+    // Sort sau khi score đã chuẩn
+    updatedTasks.sort((a, b) => {
+      if (b.priorityScore !== a.priorityScore) {
+        return b.priorityScore - a.priorityScore;
+      }
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return NextResponse.json(updatedTasks);
   } catch (error) {
     return NextResponse.json(
       {
@@ -55,7 +81,6 @@ export async function POST(req: Request) {
     description,
     categoryId,
     status,
-    priority,
     startDate,
     dueDate,
     estimatedMinutes,
@@ -72,14 +97,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const task = await Task.create({
+  const taskData = {
     title,
     description,
     categoryId,
     userId: user.id,
 
     status: status ?? "todo",
-    priority: priority ?? "medium",
 
     startDate: startDate ? new Date(startDate) : undefined,
     dueDate: dueDate ? new Date(dueDate) : undefined,
@@ -89,6 +113,16 @@ export async function POST(req: Request) {
     tags,
     energyLevel,
     focusLevel,
+  };
+
+  // 🔥 Tính priority ngay khi tạo
+  const priorityScore = calculatePriorityScoreDaily(taskData);
+  const priority = scoreToPriority(priorityScore);
+
+  const task = await Task.create({
+    ...taskData,
+    priorityScore,
+    priority,
   });
 
   return NextResponse.json(task, { status: 201 });

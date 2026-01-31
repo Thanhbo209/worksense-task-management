@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -12,7 +12,7 @@ import {
   LogOut,
   PanelsTopLeft,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
