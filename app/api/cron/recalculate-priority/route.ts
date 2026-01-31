@@ -1,17 +1,20 @@
 import { connectDB } from "@/app/lib/db";
 import Task from "@/app/lib/models/Task";
 import { calculatePriorityScoreDaily } from "@/app/lib/func/calculatePriorityScoreDaily";
-import { mapPriorityEnum } from "@/app/lib/func/mapPriorityEnum";
-import { NextResponse } from "next/server";
+import { scoreToPriority } from "@/app/lib/func/scoreToPriority";
 
-export async function GET() {
+import { NextRequest, NextResponse } from "next/server";
+export async function GET(req: NextRequest) {
+  const secret = req.headers.get("authorization");
+  if (secret !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
   await connectDB();
-
   const tasks = await Task.find();
 
   for (const task of tasks) {
     const score = calculatePriorityScoreDaily(task);
-    const priority = mapPriorityEnum(score);
+    const priority = scoreToPriority(score);
 
     task.priorityScore = score;
     task.priority = priority;

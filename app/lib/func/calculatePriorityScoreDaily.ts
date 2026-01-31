@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 export type PriorityTaskInput = {
   dueDate?: Date | string | null;
-  status: "todo" | "in-progress" | "done";
+  status: "todo" | "in_progress" | "done";
 };
 
 export function calculatePriorityScoreDaily(task: PriorityTaskInput): number {
@@ -14,8 +14,12 @@ export function calculatePriorityScoreDaily(task: PriorityTaskInput): number {
 
   /* ========= DEADLINE ========= */
   if (task.dueDate) {
-    const deadline = dayjs(task.dueDate).startOf("day");
-    const diffDays = deadline.diff(today, "day");
+    const deadline = dayjs(task.dueDate);
+    if (!deadline.isValid()) {
+      // invalid dueDate -> skip deadline scoring
+      return score;
+    }
+    const diffDays = deadline.startOf("day").diff(today, "day");
 
     if (diffDays < 0)
       score += 50; // overdue
@@ -29,7 +33,7 @@ export function calculatePriorityScoreDaily(task: PriorityTaskInput): number {
   }
 
   /* ========= STATUS BONUS ========= */
-  if (task.status === "in-progress") score += 10;
+  if (task.status === "in_progress") score += 10;
   else if (task.status === "todo") score += 5;
 
   return score;
