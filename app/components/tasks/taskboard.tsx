@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/app/lib/utils";
+import { PRIORITY_STRIP } from "@/app/types/priority-ui";
 import {
   DndContext,
   DragEndEvent,
@@ -18,8 +20,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Archive, GoalIcon, GripVertical, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { EmptyDemo } from "@/components/tasks/skeleton/EmptyTask";
+import { Button } from "@/app/components/ui/button";
+import { EmptyDemo } from "@/app/components/tasks/skeleton/EmptyTask";
+import { formatRelativeDay } from "@/app/lib/func/formatRelativeDay";
+import { formatDay } from "@/app/lib/func/formatDay";
 
 /* =======================
    Task Card
@@ -46,88 +50,103 @@ function TaskCard({ task, onArchive }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className="
-    w-full            
-    group relative
-    rounded-sm border bg-card p-4 mt-10
-    shadow-sm hover:shadow-md
-    transition-shadow
-    pointer-events-auto
-  "
-    >
-      {/* Archive button – NOT draggable */}
-      <div
-        className="flex absolute top-2 right-2 z-10
-        opacity-0 group-hover:opacity-100
-        group-focus-within:opacity-100
-        focus-visible:opacity-100
-        transition-opacity
-        text-xs rounded-full"
-      >
-        <Button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            onArchive?.(task._id);
-          }}
-          variant={"ghost"}
-          className="
-        
-        "
-        >
-          <Archive size={14} />
-        </Button>
-        <div {...listeners} className="cursor-grab active:cursor-grabbing">
-          <Button variant={"outline"} type="button">
-            <GripVertical />
-          </Button>
-        </div>
-      </div>
-
-      {/* Drag handle */}
-      <div className=" py-1 flex gap-3 items-center">
-        <h3 className="font-semibold ">{task.title}</h3>
-        <div className="bg-primary/20 rounded-md px-4 py-0.5 text-sm text-primary text-center">
-          <p>
-            {task.categoryId?.icon}
-            {task.categoryId?.name ?? "Uncategorized"}
-          </p>
-        </div>
-      </div>
-
-      {task.description && (
-        <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
+      className={cn(
+        "group relative mt-10 rounded-sm border bg-card shadow-sm transition-shadow",
+        task.priority === "urgent" && "shadow-md",
       )}
+    >
+      {/* Jira-style priority strip */}
+      <div
+        className={cn(
+          "absolute left-0 top-0 h-full rounded-l-sm",
+          PRIORITY_STRIP[task.priority],
+        )}
+      />
 
-      <div className="flex flex-wrap gap-2 text-xs">
-        {task.tags?.map((tag, idx) => (
-          <span
-            key={idx}
-            className="px-2 py-1 bg-muted border rounded text-muted-foreground"
+      {/* Content */}
+      <div className="relative p-4 pl-5">
+        {/* Actions */}
+        <div
+          className="absolute top-2 right-2 z-10 flex
+          opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onArchive?.(task._id);
+            }}
           >
-            #{tag}
-          </span>
-        ))}
-      </div>
+            <Archive size={14} />
+          </Button>
 
-      {(task.energyLevel !== undefined || task.focusLevel !== undefined) && (
-        <div className="mt-3 pt-3 gap-2 border-t flex justify-between text-xs text-muted-foreground">
-          <div className="">{task.dueDate}</div>
-          <div className="flex gap-2">
-            {task.energyLevel !== undefined && (
-              <p className="flex items-center gap-1">
-                <Zap size={20} color="yellow" /> {task.energyLevel}/5
-              </p>
-            )}
-            {task.focusLevel !== undefined && (
-              <p className="flex items-center gap-1">
-                <GoalIcon size={20} color="red" /> {task.focusLevel}/5
-              </p>
-            )}
+          <div {...listeners} className="cursor-grab active:cursor-grabbing">
+            <Button variant="outline" type="button">
+              <GripVertical />
+            </Button>
           </div>
         </div>
-      )}
+
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold">{task.title}</h3>
+
+          <div className="bg-primary/20 rounded-md px-3 py-0.5 text-sm text-primary">
+            {task.categoryId?.icon}
+            {task.categoryId?.name ?? "Uncategorized"}
+          </div>
+        </div>
+
+        {/* Description */}
+        {task.description && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {task.description}
+          </p>
+        )}
+
+        {/* Tags */}
+        {task.tags?.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {task.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-1 bg-muted border rounded text-muted-foreground"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Footer */}
+        {(task.energyLevel !== undefined ||
+          task.focusLevel !== undefined ||
+          task.dueDate) && (
+          <div className="mt-3 pt-3 border-t flex justify-between text-xs text-muted-foreground">
+            <div className="flex flex-col gap-1">
+              <span>{formatRelativeDay(task.dueDate)}</span>
+              <span className="text-[10px] opacity-70">
+                {formatDay(task.dueDate)}
+              </span>
+            </div>
+
+            <div className="flex gap-3">
+              {task.energyLevel !== undefined && (
+                <span className="flex items-center gap-1">
+                  <Zap size={16} /> {task.energyLevel}/5
+                </span>
+              )}
+              {task.focusLevel !== undefined && (
+                <span className="flex items-center gap-1">
+                  <GoalIcon size={16} /> {task.focusLevel}/5
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

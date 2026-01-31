@@ -28,11 +28,20 @@ const TaskSchema = new Schema(
       index: true,
     },
 
+    priorityScore: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
     // Priority (manual + computed later)
     priority: {
       type: String,
       enum: ["low", "medium", "high", "urgent"],
       default: "medium",
+    },
+
+    lastPriorityCalcAt: {
+      type: Date,
     },
     // Time management
     startDate: {

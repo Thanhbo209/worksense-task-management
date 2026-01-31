@@ -1,6 +1,6 @@
 "use client";
-import CreateTaskModal from "@/components/tasks/CreateTaskModal";
-import { Button } from "@/components/ui/button";
+import CreateTaskModal from "@/app/components/tasks/CreateTaskModal";
+import { Button } from "@/app/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
