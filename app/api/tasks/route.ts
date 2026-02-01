@@ -17,10 +17,17 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
+    const week = searchParams.get("week");
+    const year = searchParams.get("year");
 
     const query: any = {
       userId: user.id,
     };
+
+    if (week && year) {
+      query.week = Number(week);
+      query.year = Number(year);
+    }
 
     if (status) {
       query.status = status;
@@ -83,12 +90,36 @@ export async function POST(req: Request) {
     status,
     startDate,
     dueDate,
+
+    // planner
+    startTime,
+    endTime,
+    week,
+    year,
+    dayOfWeek,
+
     estimatedMinutes,
     actualMinutes,
     tags,
     energyLevel,
     focusLevel,
   } = body;
+
+  let hasConflict = false;
+  if (startTime && endTime && week && year && dayOfWeek) {
+    const conflicts = await Task.find({
+      userId: user.id,
+      week,
+      year,
+      dayOfWeek,
+      isDeleted: false,
+
+      startTime: { $lt: new Date(endTime) },
+      endTime: { $gt: new Date(startTime) },
+    });
+
+    hasConflict = conflicts.length > 0;
+  }
 
   if (!title || !categoryId) {
     return NextResponse.json(
@@ -97,16 +128,33 @@ export async function POST(req: Request) {
     );
   }
 
+  if (startTime && endTime) {
+    if (new Date(startTime) >= new Date(endTime)) {
+      return NextResponse.json(
+        { message: "startTime must be before endTime" },
+        { status: 400 },
+      );
+    }
+  }
+
   const taskData = {
     title,
     description,
     categoryId,
     userId: user.id,
-
     status: status ?? "todo",
 
+    // deadline
     startDate: startDate ? new Date(startDate) : undefined,
     dueDate: dueDate ? new Date(dueDate) : undefined,
+
+    // planner
+    startTime: startTime ? new Date(startTime) : undefined,
+    endTime: endTime ? new Date(endTime) : undefined,
+    week,
+    year,
+    dayOfWeek,
+    hasConflict,
 
     estimatedMinutes,
     actualMinutes,

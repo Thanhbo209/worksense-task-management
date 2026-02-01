@@ -7,17 +7,17 @@ import { cn } from "@/app/lib/utils";
 import {
   LayoutDashboard,
   CheckSquare,
-  Tags,
   Settings,
   LogOut,
   PanelsTopLeft,
+  Check,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/dashboard/categories", label: "Categories", icon: Tags },
+  { href: "/dashboard/weekly-planner", label: "Weekly Planner", icon: Check },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

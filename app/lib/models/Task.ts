@@ -47,6 +47,39 @@ const TaskSchema = new Schema(
     startDate: {
       type: Date,
     },
+    startTime: {
+      type: Date,
+      required: true,
+      index: true,
+    },
+
+    endTime: {
+      type: Date,
+      required: true,
+      index: true,
+    },
+    week: {
+      type: Number, // ISO week 1–53
+      required: true,
+      index: true,
+    },
+
+    year: {
+      type: Number,
+      required: true,
+      index: true,
+    },
+
+    dayOfWeek: {
+      type: Number, // 1 (Mon) → 7 (Sun)
+      required: true,
+      index: true,
+    },
+    hasConflict: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
 
     dueDate: {
       type: Date,
@@ -97,6 +130,29 @@ TaskSchema.pre("save", async function () {
   } else if (this.isModified("status") && this.status !== "done") {
     this.completedAt = undefined;
   }
+});
+
+TaskSchema.pre("validate", function () {
+  if (this.startTime >= this.endTime) {
+    throw new Error("startTime must be before endTime");
+  }
+});
+
+TaskSchema.pre("save", async function () {
+  if (!this.isModified("startTime") && !this.isModified("endTime")) return;
+
+  const conflicts = await model("Task").find({
+    _id: { $ne: this._id },
+    userId: this.userId,
+    week: this.week,
+    year: this.year,
+    dayOfWeek: this.dayOfWeek,
+    isDeleted: false,
+    startTime: { $lt: this.endTime },
+    endTime: { $gt: this.startTime },
+  });
+
+  this.hasConflict = conflicts.length > 0;
 });
 
 const Task = models.Task || model("Task", TaskSchema);
