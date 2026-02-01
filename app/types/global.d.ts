@@ -10,21 +10,53 @@ declare global {
 
   type TaskStatus = "todo" | "in_progress" | "done" | "archived";
 
-  interface Task {
+  export interface Task {
     _id: string;
+
+    // Owner & scope
+    userId: string;
+    week: number;
+    year: number;
+
+    // Core
     title: string;
     description?: string;
     status: TaskStatus;
-    priority: "low" | "medium" | "high";
-    categoryId?: {
-      _id: string;
-      name: string;
-      icon?: string;
-    };
+
+    priority: "low" | "medium" | "high" | "urgent";
+    priorityScore?: number;
+
+    // Time
+    startTime: string;
+    endTime: string;
+    dayOfWeek: number; // 1–7
     dueDate?: string;
+
+    // Planner
+    hasConflict: boolean;
+    estimatedMinutes?: number;
+    actualMinutes?: number;
+
+    // Organization
     tags?: string[];
+
+    categoryId:
+      | string
+      | {
+          _id: string;
+          name: string;
+          icon?: string;
+        };
+
+    // Insight
     energyLevel?: number;
     focusLevel?: number;
+
+    // Meta
+    isDeleted?: boolean;
+    completedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
   }
 
   interface TaskColumnProps {
