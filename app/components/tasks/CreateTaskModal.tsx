@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/app/components/ui/select";
 
+/* ================= TYPES ================= */
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -35,36 +37,75 @@ type Category = {
   name: string;
 };
 
+type FormState = {
+  title: string;
+  description: string;
+  categoryId: string;
+  status: "todo" | "in_progress" | "done";
+
+  startDate?: Date;
+  dueDate?: Date;
+
+  estimatedMinutes: string;
+  tags: string;
+
+  energyLevel: number;
+  focusLevel: number;
+};
+
+/* ================= COMPONENT ================= */
+
 export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [form, setForm] = useState({
+
+  const [form, setForm] = useState<FormState>({
     title: "",
     description: "",
     categoryId: "",
     status: "todo",
-    startDate: undefined as Date | undefined,
-    dueDate: undefined as Date | undefined,
+
+    startDate: undefined,
+    dueDate: undefined,
+
     estimatedMinutes: "",
     tags: "",
+
     energyLevel: 3,
     focusLevel: 3,
   });
+
+  /* ========== Helpers ========== */
+
+  const updateForm = <K extends keyof FormState>(
+    key: K,
+    value: FormState[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  /* ========== Fetch categories ========== */
 
   useEffect(() => {
     if (!open) return;
 
     const fetchCategories = async () => {
-      const res = await fetch("/api/categories");
-      const data = await res.json();
-      setCategories(data);
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        setCategories(data ?? []);
+      } catch {
+        setCategories([]);
+      }
     };
 
     fetchCategories();
   }, [open]);
 
   if (!open) return null;
+
+  /* ========== Submit ========== */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,24 +117,31 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
     }
 
     setLoading(true);
+
     try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        categoryId: form.categoryId,
+        status: form.status,
+
+        startDate: form.startDate?.toISOString(),
+        dueDate: form.dueDate?.toISOString(),
+
+        estimatedMinutes: form.estimatedMinutes
+          ? Number(form.estimatedMinutes)
+          : undefined,
+
+        tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
+
+        energyLevel: form.energyLevel,
+        focusLevel: form.focusLevel,
+      };
+
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-          categoryId: form.categoryId,
-          status: form.status,
-          startDate: form.startDate?.toISOString(),
-          dueDate: form.dueDate?.toISOString(),
-          estimatedMinutes: form.estimatedMinutes
-            ? Number(form.estimatedMinutes)
-            : undefined,
-          tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
-          energyLevel: form.energyLevel,
-          focusLevel: form.focusLevel,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -111,6 +159,8 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
     }
   };
 
+  /* ================= UI ================= */
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay */}
@@ -125,14 +175,14 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 max-h-[70vh] overflow-y-auto px-4 pb-4"
+          className="space-y-4 max-h-[70vh] overflow-y-auto px-2"
         >
           {/* Title */}
           <div>
             <Label>Title *</Label>
             <Input
               value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              onChange={(e) => updateForm("title", e.target.value)}
             />
           </div>
 
@@ -140,37 +190,26 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
           <div>
             <Label>Description</Label>
             <Textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
               rows={3}
+              value={form.description}
+              onChange={(e) => updateForm("description", e.target.value)}
             />
           </div>
 
-          {/* Status + Priority */}
+          {/* Category + Status */}
           <div className="grid grid-cols-3 gap-4">
-            {/* Category */}
             <div>
               <Label>Category *</Label>
-
               <Select
                 value={form.categoryId}
-                onValueChange={(value) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    categoryId: value,
-                  }))
-                }
+                onValueChange={(v) => updateForm("categoryId", v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Categories</SelectLabel>
-
                     {categories.map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
                         {cat.name}
@@ -180,22 +219,22 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label>Status</Label>
               <Select
                 value={form.status}
-                onValueChange={(value) => setForm({ ...form, status: value })}
+                onValueChange={(v) =>
+                  updateForm("status", v as FormState["status"])
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Status</SelectLabel>
-                    <SelectItem value="todo">Todo</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="done">Done</SelectItem>
-                  </SelectGroup>
+                  <SelectItem value="todo">Todo</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -206,12 +245,12 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
             <DatePicker
               label="Start Date"
               date={form.startDate}
-              onChange={(date) => setForm({ ...form, startDate: date })}
+              onChange={(d) => updateForm("startDate", d)}
             />
             <DatePicker
               label="Due Date"
               date={form.dueDate}
-              onChange={(date) => setForm({ ...form, dueDate: date })}
+              onChange={(d) => updateForm("dueDate", d)}
             />
           </div>
 
@@ -221,9 +260,7 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
             <Input
               type="number"
               value={form.estimatedMinutes}
-              onChange={(e) =>
-                setForm({ ...form, estimatedMinutes: e.target.value })
-              }
+              onChange={(e) => updateForm("estimatedMinutes", e.target.value)}
             />
           </div>
 
@@ -231,16 +268,14 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
           <div>
             <Label>Tags</Label>
             <Input
-              value={form.tags}
-              onChange={(e) => setForm({ ...form, tags: e.target.value })}
               placeholder="work, study"
+              value={form.tags}
+              onChange={(e) => updateForm("tags", e.target.value)}
             />
           </div>
 
-          {/* Error */}
           {error && <p className="text-sm text-red-500">{error}</p>}
 
-          {/* Actions */}
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
@@ -255,7 +290,7 @@ export default function CreateTaskModal({ open, onClose, onCreated }: Props) {
   );
 }
 
-/* ---------------- DatePicker Reusable ---------------- */
+/* ================= DatePicker ================= */
 
 function DatePicker({
   label,

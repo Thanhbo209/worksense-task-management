@@ -88,15 +88,10 @@ export async function POST(req: Request) {
     description,
     categoryId,
     status,
+
+    // deadline
     startDate,
     dueDate,
-
-    // planner
-    startTime,
-    endTime,
-    week,
-    year,
-    dayOfWeek,
 
     estimatedMinutes,
     actualMinutes,
@@ -105,22 +100,7 @@ export async function POST(req: Request) {
     focusLevel,
   } = body;
 
-  let hasConflict = false;
-  if (startTime && endTime && week && year && dayOfWeek) {
-    const conflicts = await Task.find({
-      userId: user.id,
-      week,
-      year,
-      dayOfWeek,
-      isDeleted: false,
-
-      startTime: { $lt: new Date(endTime) },
-      endTime: { $gt: new Date(startTime) },
-    });
-
-    hasConflict = conflicts.length > 0;
-  }
-
+  /* ---------- Validate cơ bản ---------- */
   if (!title || !categoryId) {
     return NextResponse.json(
       { message: "Title and category are required" },
@@ -128,15 +108,11 @@ export async function POST(req: Request) {
     );
   }
 
-  if (startTime && endTime) {
-    if (new Date(startTime) >= new Date(endTime)) {
-      return NextResponse.json(
-        { message: "startTime must be before endTime" },
-        { status: 400 },
-      );
-    }
-  }
+  /* ---------- Build planner time ---------- */
+  let startTimeDate: Date | undefined;
+  let endTimeDate: Date | undefined;
 
+  /* ---------- Build task data ---------- */
   const taskData = {
     title,
     description,
@@ -149,12 +125,8 @@ export async function POST(req: Request) {
     dueDate: dueDate ? new Date(dueDate) : undefined,
 
     // planner
-    startTime: startTime ? new Date(startTime) : undefined,
-    endTime: endTime ? new Date(endTime) : undefined,
-    week,
-    year,
-    dayOfWeek,
-    hasConflict,
+    startTime: startTimeDate,
+    endTime: endTimeDate,
 
     estimatedMinutes,
     actualMinutes,
@@ -163,10 +135,11 @@ export async function POST(req: Request) {
     focusLevel,
   };
 
-  // 🔥 Tính priority ngay khi tạo
+  /* ---------- Priority ---------- */
   const priorityScore = calculatePriorityScoreDaily(taskData);
   const priority = scoreToPriority(priorityScore);
 
+  /* ---------- Save ---------- */
   const task = await Task.create({
     ...taskData,
     priorityScore,
