@@ -5,6 +5,7 @@ import { connectDB } from "@/app/lib/db";
 import Task from "@/app/lib/models/Task";
 import { calculatePriorityScoreDaily } from "@/app/lib/func/calculatePriorityScoreDaily";
 import { scoreToPriority } from "@/app/lib/func/scoreToPriority";
+import { buildDateFromWeek } from "@/app/lib/func/buildDateFromWeek";
 
 export async function GET(req: NextRequest) {
   try {
@@ -88,15 +89,17 @@ export async function POST(req: Request) {
     description,
     categoryId,
     status,
-    startDate,
-    dueDate,
 
     // planner
-    startTime,
-    endTime,
+    startTime, // "09:00"
+    endTime, // "10:00"
     week,
     year,
     dayOfWeek,
+
+    // deadline
+    startDate,
+    dueDate,
 
     estimatedMinutes,
     actualMinutes,
@@ -105,22 +108,7 @@ export async function POST(req: Request) {
     focusLevel,
   } = body;
 
-  let hasConflict = false;
-  if (startTime && endTime && week && year && dayOfWeek) {
-    const conflicts = await Task.find({
-      userId: user.id,
-      week,
-      year,
-      dayOfWeek,
-      isDeleted: false,
-
-      startTime: { $lt: new Date(endTime) },
-      endTime: { $gt: new Date(startTime) },
-    });
-
-    hasConflict = conflicts.length > 0;
-  }
-
+  /* ---------- Validate cơ bản ---------- */
   if (!title || !categoryId) {
     return NextResponse.json(
       { message: "Title and category are required" },
@@ -128,15 +116,40 @@ export async function POST(req: Request) {
     );
   }
 
-  if (startTime && endTime) {
-    if (new Date(startTime) >= new Date(endTime)) {
+  /* ---------- Build planner time ---------- */
+  let startTimeDate: Date | undefined;
+  let endTimeDate: Date | undefined;
+  let hasConflict = false;
+
+  const hasPlanner =
+    startTime && endTime && week && year && dayOfWeek !== undefined;
+
+  if (hasPlanner) {
+    startTimeDate = buildDateFromWeek(year, week, dayOfWeek, startTime);
+    endTimeDate = buildDateFromWeek(year, week, dayOfWeek, endTime);
+
+    if (startTimeDate >= endTimeDate) {
       return NextResponse.json(
         { message: "startTime must be before endTime" },
         { status: 400 },
       );
     }
+
+    /* ---------- Conflict check ---------- */
+    const conflicts = await Task.find({
+      userId: user.id,
+      week,
+      year,
+      dayOfWeek,
+      isDeleted: false,
+      startTime: { $lt: endTimeDate },
+      endTime: { $gt: startTimeDate },
+    });
+
+    hasConflict = conflicts.length > 0;
   }
 
+  /* ---------- Build task data ---------- */
   const taskData = {
     title,
     description,
@@ -149,8 +162,8 @@ export async function POST(req: Request) {
     dueDate: dueDate ? new Date(dueDate) : undefined,
 
     // planner
-    startTime: startTime ? new Date(startTime) : undefined,
-    endTime: endTime ? new Date(endTime) : undefined,
+    startTime: startTimeDate,
+    endTime: endTimeDate,
     week,
     year,
     dayOfWeek,
@@ -163,10 +176,11 @@ export async function POST(req: Request) {
     focusLevel,
   };
 
-  // 🔥 Tính priority ngay khi tạo
+  /* ---------- Priority ---------- */
   const priorityScore = calculatePriorityScoreDaily(taskData);
   const priority = scoreToPriority(priorityScore);
 
+  /* ---------- Save ---------- */
   const task = await Task.create({
     ...taskData,
     priorityScore,
