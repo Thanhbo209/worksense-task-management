@@ -5,7 +5,6 @@ import { connectDB } from "@/app/lib/db";
 import Task from "@/app/lib/models/Task";
 import { calculatePriorityScoreDaily } from "@/app/lib/func/calculatePriorityScoreDaily";
 import { scoreToPriority } from "@/app/lib/func/scoreToPriority";
-import { buildDateFromWeek } from "@/app/lib/func/buildDateFromWeek";
 
 export async function GET(req: NextRequest) {
   try {
@@ -90,13 +89,6 @@ export async function POST(req: Request) {
     categoryId,
     status,
 
-    // planner
-    startTime, // "09:00"
-    endTime, // "10:00"
-    week,
-    year,
-    dayOfWeek,
-
     // deadline
     startDate,
     dueDate,
@@ -119,35 +111,6 @@ export async function POST(req: Request) {
   /* ---------- Build planner time ---------- */
   let startTimeDate: Date | undefined;
   let endTimeDate: Date | undefined;
-  let hasConflict = false;
-
-  const hasPlanner =
-    startTime && endTime && week && year && dayOfWeek !== undefined;
-
-  if (hasPlanner) {
-    startTimeDate = buildDateFromWeek(year, week, dayOfWeek, startTime);
-    endTimeDate = buildDateFromWeek(year, week, dayOfWeek, endTime);
-
-    if (startTimeDate >= endTimeDate) {
-      return NextResponse.json(
-        { message: "startTime must be before endTime" },
-        { status: 400 },
-      );
-    }
-
-    /* ---------- Conflict check ---------- */
-    const conflicts = await Task.find({
-      userId: user.id,
-      week,
-      year,
-      dayOfWeek,
-      isDeleted: false,
-      startTime: { $lt: endTimeDate },
-      endTime: { $gt: startTimeDate },
-    });
-
-    hasConflict = conflicts.length > 0;
-  }
 
   /* ---------- Build task data ---------- */
   const taskData = {
@@ -164,10 +127,6 @@ export async function POST(req: Request) {
     // planner
     startTime: startTimeDate,
     endTime: endTimeDate,
-    week,
-    year,
-    dayOfWeek,
-    hasConflict,
 
     estimatedMinutes,
     actualMinutes,

@@ -16,7 +16,7 @@ interface Task {
   _id: string;
   title: string;
   status: string;
-  priority: number;
+  priority: "low" | "medium" | "high" | "urgent";
 }
 
 interface WeeklyPlan {
@@ -96,19 +96,27 @@ const useWeeklyPlan = (week: number, year: number) => {
 
   const closeWeek = async () => {
     if (!weeklyPlan) return;
-    await fetch(`/api/weekly-plan/${weeklyPlan._id}/close`, {
+    const res = await fetch(`/api/weekly-plan/${weeklyPlan._id}/close`, {
       method: "POST",
     });
+    if (!res.ok) {
+      console.error("Failed to close week");
+      return;
+    }
     await fetchWeeklyPlan();
   };
 
   const addTask = async (taskId: string) => {
     if (!weeklyPlan || weeklyPlan.locked) return;
-    await fetch(`/api/weekly-plan/${weeklyPlan._id}/tasks`, {
+    const res = await fetch(`/api/weekly-plan/${weeklyPlan._id}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ taskId }),
     });
+    if (!res.ok) {
+      console.error("Failed to add task to weekly plan");
+      return;
+    }
     await fetchWeeklyPlan();
   };
 
@@ -169,16 +177,16 @@ const DraggableTask = ({ task }: { task: Task }) => {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium ">{task.title}</p>
-          {task.priority > 0 && (
+          {task.priority && task.priority !== "low" && (
             <div className="flex items-center gap-1 mt-1">
-              {Array.from({ length: Math.min(task.priority, 3) }).map(
-                (_, i) => (
-                  <div
-                    key={i}
-                    className="w-1.5 h-1.5 rounded-full bg-orange-500"
-                  />
-                ),
-              )}
+              {Array.from({
+                length: { medium: 1, high: 2, urgent: 3 }[task.priority] || 0,
+              }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-orange-500"
+                />
+              ))}
             </div>
           )}
         </div>

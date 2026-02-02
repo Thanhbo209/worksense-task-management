@@ -27,7 +27,20 @@ const WeeklyPlanSchema = new Schema(
         ref: "Task",
       },
     ],
+    locked: {
+      type: Boolean,
+      default: false,
+    },
 
+    targetTasks: {
+      type: Number,
+      default: 0,
+    },
+
+    completedTasks: {
+      type: Number,
+      default: 0,
+    },
     notes: {
       type: String, // optional: ghi chú tuần
     },

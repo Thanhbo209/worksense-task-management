@@ -17,7 +17,6 @@ export async function POST(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ FIX Ở ĐÂY
     const { id: weeklyPlanId } = await context.params;
 
     const { taskId } = await req.json();
@@ -27,7 +26,7 @@ export async function POST(
       userId: user.id,
     });
 
-    if (!weeklyPlan) {
+    if (!weeklyPlan || weeklyPlan.locked) {
       return NextResponse.json(
         { message: "Weekly plan not found or locked" },
         { status: 404 },
@@ -43,7 +42,10 @@ export async function POST(
       return NextResponse.json({ message: "Task not found" }, { status: 404 });
     }
 
-    if (!weeklyPlan.tasks.includes(task._id)) {
+    const alreadyIncluded = weeklyPlan.tasks.some(
+      (t: any) => t.toString() === task._id.toString(),
+    );
+    if (!alreadyIncluded) {
       weeklyPlan.tasks.push(task._id);
       weeklyPlan.targetTasks = weeklyPlan.tasks.length;
       await weeklyPlan.save();

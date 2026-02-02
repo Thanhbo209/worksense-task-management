@@ -3,10 +3,7 @@ import { connectDB } from "@/app/lib/db";
 import WeeklyPlan from "@/app/lib/models/WeeklyPlan";
 import { NextResponse } from "next/server";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function POST(context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
 
@@ -15,8 +12,10 @@ export async function POST(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await context.params;
+
     const weeklyPlan = await WeeklyPlan.findOne({
-      _id: params.id,
+      _id: id,
       userId: user.id,
     }).populate("tasks");
 
